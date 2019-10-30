@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AMP Story Embed</title>
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+
+  <script src="https://unpkg.com/preact@10.0.0-rc.3/dist/preact.umd.js"></script>
+  <script src="https://unpkg.com/preact@10.0.0-rc.3/hooks/dist/hooks.umd.js"></script>
+  <script src="https://unpkg.com/preact@10.0.0-rc.3/compat/dist/compat.umd.js"></script>
+  <script>
+    window.React = Object.assign({}, preact, preactHooks, preactCompat);
+  </script>
+  <script src="https://unpkg.com/react-router-dom/umd/react-router-dom.js"></script>
+  <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+  <script type="module">
+    import {AmpStoryEmbed} from './src/amp-story-embed.js';
+    window.AmpStoryEmbed = AmpStoryEmbed;
+  </script>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="text/babel">
+/**
+ * @jsx preact.createElement
+ * @jsxFrag preact.Fragment
+ */
+
+class App extends preact.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <main>
+        <h1>amp-story-embed</h1>
+        <AmpStoryEmbed id="storyEmbed">
+          <a href="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-new-york-city/"
+             data-poster-portrait-src="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-new-york-city/img/promo3x4.jpg"
+             class="story">
+             <span class="title">A local’s guide to what to eat and do in New York City</span>
+          </a>
+          <a href="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-miami/"
+              data-poster-portrait-src="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-miami/img/promo3x4.jpg"
+              class="story">
+            <span class="title">A local’s guide to what to eat and do in Miami</span>
+          </a>
+          <a href="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-mexico-city/"
+              data-poster-portrait-src="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-mexico-city/img/promo3x4.jpg"
+              class="story">
+            <span class="title">A local’s guide to what to eat and do in Mexico City</span>
+          </a>
+          <a href="https://www.washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-eat-and-do-in-rome/"
+              data-poster-portrait-src="https://washingtonpost.com/graphics/2019/lifestyle/travel/amp-stories/a-locals-guide-to-what-to-do-and-eat-in-rome/img/promo3x4.jpg"
+              class="story">
+            <span class="title">A local’s guide to what to eat and do in Rome</span>
+          </a>
+        </AmpStoryEmbed>
+      </main>
+    )
+  }
+}
+
+preact.render(<App/>, document.getElementById('app'))
+</script>
+</body>
+</html>
