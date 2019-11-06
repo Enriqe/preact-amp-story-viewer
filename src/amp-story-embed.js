@@ -14,29 +14,43 @@
  * limitations under the License.
  */
 
-/** @const {string} */
-const CSS =
-  ':host { all: initial; display: block; border-radius: 0 !important; width: 405px; height: 720px; overflow: auto; } .story { height: 100%; width: 100%; flex: 0 0 100%; border: 0; opacity: 0; transition: opacity 500ms ease; } main { display: flex; flex-direction: row; height: 100%; } .i-amphtml-story-embed-loaded iframe { opacity: 1; } iframe[src=""] { display: none; }';
+const viewerHost = document.createElement('container');
+const viewerEl = document.createElement('viewer');
+viewerEl.appendChild(viewerHost);
+document.body.appendChild(viewerEl);
+const ampDoc = document.createElement('ampDoc');
+document.body.appendChild(ampDoc);
+let viewer;
 
 export function AmpStoryEmbed(props) {
   const { children } = props;
   props['decoding'] = 'async';
 
-  // TODO: build all child iframes.
+  // TODO: build all stories.
   const story = children[0];
   // TODO: add backgroundimage from data-poster-portrait-src.
-  const iframe = preact.createElement('iframe', {
-    src: story.props.href,
-    style: {
-      all: 'initial',
-      display: 'block',
-      'border-radius': '0 !important',
-      width: '405px',
-      height: '720px',
-      overflow: 'auto',
-    },
-  });
+  viewer = new Viewer(viewerHost, story.props.href);
+  viewer.setViewerShowAndHide(showViewer, hideViewer, isViewerHidden);
 
-  // TODO: render all iframes
-  return preact.createElement('amp-story-embed', props, iframe);
+  // TODO: render all viewers
+  const embed = preact.createElement('amp-story-embed', props);
+  openAmpDocInViewer();
+  return embed;
+}
+
+function hideViewer() {
+  viewerEl.classList.add('hidden');
+}
+
+function showViewer() {
+  viewerEl.classList.remove('hidden');
+}
+
+function isViewerHidden() {
+  return viewerEl.classList.contains('hidden');
+}
+
+function openAmpDocInViewer() {
+  viewer.attach();
+  showViewer();
 }

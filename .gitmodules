@@ -1,0 +1,3 @@
+[submodule "src/amp-viewer"]
+	path = src/amp-viewer
+	url = https://github.com/ampproject/amp-viewer.git
