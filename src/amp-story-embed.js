@@ -18,39 +18,41 @@ const viewerHost = document.createElement('container');
 const viewerEl = document.createElement('viewer');
 viewerEl.appendChild(viewerHost);
 document.body.appendChild(viewerEl);
-const ampDoc = document.createElement('ampDoc');
-document.body.appendChild(ampDoc);
-let viewer;
 
 export function AmpStoryEmbed(props) {
+  const Messaging = window.Messaging;
   const { children } = props;
   props['decoding'] = 'async';
 
   // TODO: build all stories.
   const story = children[0];
-  // TODO: add backgroundimage from data-poster-portrait-src.
-  viewer = new Viewer(viewerHost, story.props.href);
-  viewer.setViewerShowAndHide(showViewer, hideViewer, isViewerHidden);
 
-  // TODO: render all viewers
-  const embed = preact.createElement('amp-story-embed', props);
-  openAmpDocInViewer();
-  return embed;
-}
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('id', 'AMP_DOC_1');
+  const url =
+    story.props.href +
+    `?amp_js_v=0.1#visibilityState=visible&width=412&height=660&paddingTop=50&prerenderSize=1&origin=http%3A%2F%2F127.0.0.1%3A8080`;
 
-function hideViewer() {
-  viewerEl.classList.add('hidden');
-}
-
-function showViewer() {
-  viewerEl.classList.remove('hidden');
-}
-
-function isViewerHidden() {
-  return viewerEl.classList.contains('hidden');
-}
-
-function openAmpDocInViewer() {
-  viewer.attach();
-  showViewer();
+  iframe.setAttribute('src', url);
+  viewerHost.appendChild(iframe);
+  Messaging.waitForHandshakeFromDocument(
+    window,
+    iframe.contentWindow,
+    'http://127.0.0.1:8080'
+  ).then(
+    messaging => {
+      messaging.registerHandler('moreInfoLinkUrl', handler => {
+        console.log({ handler });
+        return Promise.resolve();
+      });
+      messaging.setDefaultHandler(handler => {
+        console.log('default', { handler });
+        return Promise.resolve();
+      });
+      messaging.sendRequest('visibilitychange', { state: 'visible' }, true);
+    },
+    err => {
+      console.log({ err });
+    }
+  );
 }
