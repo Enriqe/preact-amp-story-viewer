@@ -14,42 +14,63 @@
  * limitations under the License.
  */
 
-const viewerHost = document.createElement('container');
-const viewerEl = document.createElement('viewer');
-viewerEl.appendChild(viewerHost);
-document.body.appendChild(viewerEl);
+const { useEffect, useRef } = preactHooks;
 
 export function AmpStoryEmbed(props) {
-  const Messaging = window.Messaging;
-  const { children } = props;
   props['decoding'] = 'async';
+  const { children } = props;
 
-  // TODO: build all stories.
-  const story = children[0];
+  return preact.createElement('viewer', {}, buildStories(children));
+}
 
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('id', 'AMP_DOC_1');
-  const url =
-    story.props.href +
-    `?amp_js_v=0.1#visibilityState=visible&width=412&height=660&paddingTop=50&prerenderSize=1&origin=http%3A%2F%2F127.0.0.1%3A8080`;
+/**
+ * Builds stories and realizes handshake between them and the viewer.
+ * @param {!Array<!Element>} stories
+ */
+function buildStories(stories) {
+  const containerRef = useRef();
 
-  iframe.setAttribute('src', url);
-  viewerHost.appendChild(iframe);
+  const iframes = stories.map((story, idx) => {
+    const url =
+      story.props.href +
+      `?amp_js_v=0.1#visibilityState=prerender&width=412&height=660&paddingTop=50&prerenderSize=1&origin=http%3A%2F%2F127.0.0.1%3A8080`;
+    const iframe = preact.createElement('iframe', {
+      id: 'AMP_DOC_' + idx,
+      src: url,
+    });
+    return iframe;
+  });
+
+  useEffect(() => {
+    Array.prototype.forEach.call(containerRef.current.children, iframe => {
+      initializeHandshake(iframe);
+    });
+  });
+
+  return preact.createElement('container', { ref: containerRef }, iframes);
+}
+
+/**
+ * Initializes messaging between viewer and AMP document.
+ * @param {!Element} iframe
+ */
+function initializeHandshake(iframe) {
   Messaging.waitForHandshakeFromDocument(
     window,
     iframe.contentWindow,
     'http://127.0.0.1:8080'
   ).then(
     messaging => {
-      messaging.registerHandler('moreInfoLinkUrl', handler => {
-        console.log({ handler });
-        return Promise.resolve();
-      });
       messaging.setDefaultHandler(handler => {
         console.log('default', { handler });
-        return Promise.resolve();
       });
-      messaging.sendRequest('visibilitychange', { state: 'visible' }, true);
+      // Render first story.
+      if (iframe.id === 'AMP_DOC_0') {
+        messaging.sendRequest('visibilitychange', { state: 'visible' }, true);
+      }
+      messaging.registerHandler('moreInfoLinkUrl', () => {
+        return Promise.resolve('https://www.google.com');
+      });
     },
     err => {
       console.log({ err });
