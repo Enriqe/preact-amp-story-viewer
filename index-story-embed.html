@@ -71,9 +71,23 @@
       border: 2px solid red;
       display: block;
     }
+    button {
+      display: block;
+      background-color: cornflowerblue;
+      position: absolute;
+      top: 60px;
+    }
+    button.prev {
+      left: 10px;
+    }
+    button.next {
+      right: 10px;
+    }
   </style>
 </head>
 <body>
+<button type="button" class="prev">Previous</button>
+<button type="button" class="next">Next</button>
 
 <div id="app"></div>
 

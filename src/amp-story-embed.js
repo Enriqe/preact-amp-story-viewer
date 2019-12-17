@@ -14,22 +14,62 @@
  * limitations under the License.
  */
 
-const { useEffect, useRef } = preactHooks;
+const {useEffect, useRef} = preactHooks;
 
+/**
+ *
+ * @param {*} props
+ * @return {*}
+ */
 export function AmpStoryEmbed(props) {
   props['decoding'] = 'async';
-  const { children } = props;
 
-  return preact.createElement('viewer', {}, buildStories(children));
+  const {children} = props;
+  const containerRef = useRef();
+  const container = buildStories(children, containerRef);
+  const messagingMap = {};
+
+  useEffect(() => {
+    if (!containerRef.current) {
+      return;
+    }
+    Array.prototype.forEach.call(containerRef.current.children, (iframe) => {
+      initializeHandshake(iframe).then((messaging) => {
+        messagingMap[iframe.id] = messaging;
+      });
+    });
+
+    const currentIframe = containerRef.current.children[0];
+    installGestures(messagingMap, currentIframe);
+  });
+
+  return preact.createElement('viewer', {}, container);
 }
 
 /**
- * Builds stories and realizes handshake between them and the viewer.
- * @param {!Array<!Element>} stories
+ *
+ * @param {!Object} messagingMap
+ * @param {!Element} iframe
  */
-function buildStories(stories) {
-  const containerRef = useRef();
+function installGestures(messagingMap, iframe) {
+  const buttonLeft = window.document.querySelector('button.prev');
+  const buttonRight = window.document.querySelector('button.next');
+  // TODO: install swiping gestures for real.
+  buttonLeft.addEventListener('click', () => {
+    previousStory(messagingMap, iframe);
+  });
+  buttonRight.addEventListener('click', () => {
+    nextStory(messagingMap, iframe);
+  });
+}
 
+/**
+ *
+ * @param {*} stories
+ * @param {*} containerRef
+ * @return {*}
+ */
+function buildStories(stories, containerRef) {
   const iframes = stories.map((story, idx) => {
     const url =
       story.props.href +
@@ -41,39 +81,65 @@ function buildStories(stories) {
     return iframe;
   });
 
-  useEffect(() => {
-    Array.prototype.forEach.call(containerRef.current.children, iframe => {
-      initializeHandshake(iframe);
-    });
-  });
-
-  return preact.createElement('container', { ref: containerRef }, iframes);
+  return preact.createElement('container', {ref: containerRef}, iframes);
 }
 
 /**
  * Initializes messaging between viewer and AMP document.
  * @param {!Element} iframe
+ * @return {!Promise}
  */
 function initializeHandshake(iframe) {
-  Messaging.waitForHandshakeFromDocument(
-    window,
-    iframe.contentWindow,
-    'http://127.0.0.1:8080'
+  return Messaging.waitForHandshakeFromDocument(
+      window,
+      iframe.contentWindow,
+      'http://127.0.0.1:8080',
   ).then(
-    messaging => {
-      messaging.setDefaultHandler(handler => {
-        console.log('default', { handler });
-      });
-      // Render first story.
-      if (iframe.id === 'AMP_DOC_0') {
-        messaging.sendRequest('visibilitychange', { state: 'visible' }, true);
-      }
-      messaging.registerHandler('moreInfoLinkUrl', () => {
-        return Promise.resolve('https://www.google.com');
-      });
-    },
-    err => {
-      console.log({ err });
-    }
+      (messaging) => {
+        messaging.setDefaultHandler((handler) => {
+          console.log('default', {handler});
+        });
+        // Render first story.
+        if (iframe.id === 'AMP_DOC_0') {
+          messaging.sendRequest('visibilitychange', {state: 'visible'}, true);
+        }
+        messaging.registerHandler('moreInfoLinkUrl', () => {
+          return Promise.resolve('https://www.google.com');
+        });
+        return messaging;
+      },
+      (err) => {
+        console.log({err});
+      },
   );
+}
+
+/**
+ *
+ * @param {*} messagingMap
+ * @param {*} iframe
+ */
+function nextStory(messagingMap, iframe) {
+  // pause and hide current story
+  // play next story
+  // pre-render next-next story
+  if (!messagingMap[iframe.id]) {
+    return;
+  }
+  console.log('next');
+}
+
+/**
+ *
+ * @param {*} messagingMap
+ * @param {*} iframe
+ */
+function previousStory(messagingMap, iframe) {
+  // pause and hide current story
+  // play previous story
+  // pre-render previous-previous story
+  if (!messagingMap[iframe.id]) {
+    return;
+  }
+  console.log('prev');
 }
